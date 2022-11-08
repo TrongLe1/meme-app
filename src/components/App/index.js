@@ -1,5 +1,5 @@
 import './style.css'
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import ImageGallery from "../ImageGallery";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
@@ -8,37 +8,42 @@ import {useQuery} from "@tanstack/react-query";
 
 function App() {
     const [urls, setUrls] = useState([]);
-    useEffect(() => {
-        loadMemes();
-        return () => {};
-    }, []);
-
-    const { status, data, refetch } = useQuery({
-        queryKey: ['memes'],
+    const [count, setCount] = useState(0);
+    const { status } = useQuery({
+        queryKey: ['memes', count],
         queryFn: async () => {
             const response = await fetch('https://api.imgflip.com/get_memes');
             const data = await response.json();
-            setUrls(data.data.memes.map((meme) => meme.url));
-            return data.data.memes.map((meme) => meme.url);
+            const memes = data.data.memes.map((meme) => meme.url);
+            setUrls(memes);
+            return memes;
         },
-        enabled: false,
+        staleTime: Infinity,
     });
-
-    const buttonClicked = function () {
-        refetch();
+    if (status === 'loading') {
+        return (
+            <div className="app">
+                <Button disabled={true} variant="success">Loading</Button>
+            </div>
+        );
     }
-
-    const loadMemes = async function () {
-        const response = await fetch('https://api.imgflip.com/get_memes');
-        const data = await response.json();
-        setUrls(data.data.memes.map((meme) => meme.url));
+    if (status === 'error') {
+        return (
+            <div className="app">
+                <Button variant="danger" onClick={() => {
+                    setCount(count + 1);
+                }}>Try Again</Button>
+            </div>
+        );
     }
     return (
         <div className="app">
-            <Button variant="primary" onClick={buttonClicked}>Load Memes</Button>
+            <Button variant="primary" onClick={() => {
+                setCount(count + 1);
+            }}>Load Memes</Button>
             <Container>
                 <Row>
-                    <ImageGallery urls={urls} />
+                    <ImageGallery urls={urls}/>
                 </Row>
             </Container>
         </div>

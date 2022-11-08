@@ -6,7 +6,7 @@ function ImageGallery({urls}) {
     return (
         <>
             {urls.map((url) =>
-                <Col sm={6} md={4} lg={3} key={url}>
+                <Col key={url} className="mt-3" sm={6} md={4} lg={3}>
                     <img className="meme" src={url} alt=""/>
                 </Col>
             )}
